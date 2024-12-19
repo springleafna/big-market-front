@@ -5,62 +5,71 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
-// 动态请求数据
-
-const getDate = async () => {
-const res = await axios.get('https://mock.apipost.net/mock/3aa45cf4e87c000/api/v1/raffle/query_raffle_award_list?apipost_id=2a463d44bdc001');
-console.log(res.data.data);
-// 封装数据
-prizes.value = res.data.data.map(item => ({
-    title: item.awardTitle,
-    description: item.awardSubtitle,
-    image: null, // 假设没有图片字段，可以设置为null或空字符串
-    fonts: [{ text: item.awardTitle, top: '25%' }],
-    background: '#e9e8fe'
-}));
-}
-getDate()
+import { ref, onMounted } from 'vue';
+import request from '@/utils/request';
 
 // 定义响应式数据
-// 背景色
 const blocks = ref([{ padding: '13px', background: '#617df2' }]);
-// 奖项数据
-const prizes = ref([
-    { fonts: [{ text: '0', top: '10%' }], background: '#e9e8fe' },
-    { fonts: [{ text: '1', top: '10%' }], background: '#b8c5f2' },
-    { fonts: [{ text: '2', top: '10%' }], background: '#e9e8fe' },
-    { fonts: [{ text: '3', top: '10%' }], background: '#b8c5f2' },
-    { fonts: [{ text: '4', top: '10%' }], background: '#e9e8fe' },
-    { fonts: [{ text: '5', top: '10%' }], background: '#b8c5f2' },
-    { fonts: [{ text: '6', top: '10%' }], background: '#e9e8fe' },
-    { fonts: [{ text: '7', top: '10%' }], background: '#b8c5f2' },
-]);
+const prizes = ref([]);
 const buttons = ref([{
     radius: '35%',
     background: '#8a9bf3',
     pointer: true,
     fonts: [{ text: '开始', top: '-10px' }]
 }]);
-
-// 定义方法
-const startCallback = () => {
-// 调用抽奖组件的play方法开始游戏
-myLucky.value.play();
-// 模拟调用接口异步抽奖
-setTimeout(() => {
-    // 假设后端返回的中奖索引是0
-    const index = 5;
-    // 调用stop停止旋转并传递中奖索引
-    myLucky.value.stop(index);
-}, 3000);
-};
-
-const endCallback = (prize) => {
-console.log(prize);
-};
-
-// 定义ref以引用子组件
 const myLucky = ref(null);
+
+// 获取奖品列表
+const queryRaffleAwardList = async () => {
+    try {
+        const res = await request.get('/api/v1/raffle/strategy_armory?strategyId=100003');
+        prizes.value = res.data.map(item => ({
+            title: item.awardTitle,
+            description: item.awardSubtitle,
+            image: null,
+            fonts: [{ text: item.awardTitle, top: '25%' }],
+            background: '#e9e8fe'
+        }));
+    } catch (error) {
+        console.error("获取奖品列表失败:", error);
+    }
+}
+
+// 抽奖方法
+const randomRaffle = async () => {
+    try {
+        const req = await request.post('/api/v1/raffle/strategy_armory/random_raffle', {
+            strategyId: 100003,
+        });
+        if (req.data) {
+            return req.data.awardIndex; // 返回奖品排序索引
+        } else {
+            console.error("抽奖请求未返回数据");
+            return null; // 如果没有数据返回null
+        }
+    } catch (error) {
+        console.error("抽奖失败:", error);
+        return null; // 发生错误时返回null
+    }
+}
+
+// 开始抽奖
+const startCallback = async () => {
+    myLucky.value.play();
+    const awardIndex = await randomRaffle(); // 调用randomRaffle方法并获取awardIndex
+    if (awardIndex !== null) {
+        setTimeout(() => {
+            myLucky.value.stop(awardIndex); // 使用获取到的awardIndex调用stop
+        }, 3000);
+    }
+};
+
+// 结束抽奖
+const endCallback = (prize) => {
+    console.log(prize);
+};
+
+onMounted(() => {
+    queryRaffleAwardList();
+});
 </script>

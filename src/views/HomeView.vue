@@ -17,12 +17,12 @@ onMounted(() => {
 <template>
 <div class="container">
   <div class="header">大营销平台 - 抽奖展示</div>
-  <PersonalInformation />
-  <div class="content">
-    <LuckyWheel />
-    <LuckyGrid />
-  </div>
   <PointsExchange />
+  <div class="content">
+    <!-- <LuckyWheel /> -->
+    <LuckyGrid />
+    <PersonalInformation />
+  </div>
   <WinningBroadcast />
 </div>
 </template>

@@ -2,7 +2,7 @@
 <div class="prize-container">
     <div class="card" v-for="(item, index) in prizeOptions" :key="index">
     <h2>{{ item.label }}</h2>
-    <p class="price">{{ item.price }}¥</p>
+    <p class="price">{{ item.price }}积分</p>
     <button @click="redeem(item)" class="redeem-button">
         🛒 兑换
     </button>
@@ -20,7 +20,7 @@ const prizeOptions = ref([
 ]);
 
 const redeem = (item) => {
-    alert(`成功兑换：${item.label}，花费：${item.price}¥`);
+    alert(`成功兑换：${item.label}，花费：${item.price}积分`);
 };
 </script>
 
